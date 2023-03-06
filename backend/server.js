@@ -1,16 +1,24 @@
 const express = require("express");
-
+const dotenv = require("dotenv");
+const connectDB = require("./config/db");
 const app = express();
+const userRouter = require("./Routes/userRoutes");
+const { notFound, errorHandler } = require("./middleware/errorMiddlerware");
 
-app.get("/chat", (req, res, next) => {
-  res.json({ status: "chat" });
-  console.log("chat");
-  next();
-});
+dotenv.config();
+connectDB();
+
+app.use(express.json());
 
 app.get("/", (req, res) => {
   res.json([{ status: "going" }]);
   console.log("/");
 });
 
-app.listen(5000);
+app.use("/api/user", userRouter);
+
+app.use(notFound);
+app.use(errorHandler);
+
+app.listen(process.env.PORT || 1000);
+console.log(`started port at ${process.env.PORT || 1000}`.magenta);
