@@ -2,10 +2,12 @@ const expressAsyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const genrateToken = require("../config/genrateToken");
 const bycrpt = require("bcryptjs");
+const colors = require("colors");
 
+// /api/user
 const registerUser = expressAsyncHandler(async (req, res) => {
   const { name, email, password, pic } = req.body;
-
+  console.log(`${name}, ${email}, ${password}, ${pic}`.green.bold);
   if (!name || !email || !password) {
     res.status(400);
     throw new Error("Please Enter all the fields");
@@ -40,9 +42,9 @@ const registerUser = expressAsyncHandler(async (req, res) => {
   }
 });
 
+// /api/user/login
 const loginUser = expressAsyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
   const user = await User.findOne({ email });
 
   console.log("login".america, bycrpt.compareSync(password, user.password));
@@ -59,4 +61,20 @@ const loginUser = expressAsyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { registerUser, loginUser };
+// /api/user
+const getAllUser = expressAsyncHandler(async (req, res) => {
+  const keyword = req.query.search
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const user = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+  res.json(user);
+  console.log(`${user}`.black.bgYellow);
+});
+
+module.exports = { registerUser, loginUser, getAllUser };
